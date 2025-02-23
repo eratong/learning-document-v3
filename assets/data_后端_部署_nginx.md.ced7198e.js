@@ -1,0 +1,17 @@
+import{_ as a,o as n,c as s,X as e}from"./chunks/framework.9bc23fa4.js";const A=JSON.parse('{"title":"nginx","description":"","frontmatter":{},"headers":[],"relativePath":"data/后端/部署/nginx.md","filePath":"data/后端/部署/nginx.md","lastUpdated":1720420715000}'),l={name:"data/后端/部署/nginx.md"},t=e(`<h1 id="nginx" tabindex="-1">nginx <a class="header-anchor" href="#nginx" aria-label="Permalink to &quot;nginx&quot;">​</a></h1><h2 id="基础" tabindex="-1">基础 <a class="header-anchor" href="#基础" aria-label="Permalink to &quot;基础&quot;">​</a></h2><p>描述</p><blockquote><p>web服务器<br> 做静态内容服务和代理服务器</p></blockquote><p>官网</p><blockquote><p><a href="https://nginx.org/en/index.html" target="_blank" rel="noreferrer">https://nginx.org/en/index.html</a></p></blockquote><h2 id="配置" tabindex="-1">配置 <a class="header-anchor" href="#配置" aria-label="Permalink to &quot;配置&quot;">​</a></h2><p>请求转发导致session失效</p><div class="language-"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki material-theme-palenight"><code><span class="line"><span style="color:#A6ACCD;">server {</span></span>
+<span class="line"><span style="color:#A6ACCD;">        listen       80;</span></span>
+<span class="line"><span style="color:#A6ACCD;">        server_name  xu.ye.tong; #需要搭配修改host才有用</span></span>
+<span class="line"><span style="color:#A6ACCD;"></span></span>
+<span class="line"><span style="color:#A6ACCD;">        location /uocr/ {</span></span>
+<span class="line"><span style="color:#A6ACCD;">			proxy_pass http://localhost:8086/unifiedocr/;</span></span>
+<span class="line"><span style="color:#A6ACCD;">			proxy_cookie_path /unifiedocr /uocr;</span></span>
+<span class="line"><span style="color:#A6ACCD;"></span></span>
+<span class="line"><span style="color:#A6ACCD;">            root   html;</span></span>
+<span class="line"><span style="color:#A6ACCD;">            index  index.html index.htm;</span></span>
+<span class="line"><span style="color:#A6ACCD;">        }</span></span>
+<span class="line"><span style="color:#A6ACCD;"></span></span>
+<span class="line"><span style="color:#A6ACCD;">        error_page   500 502 503 504  /50x.html;</span></span>
+<span class="line"><span style="color:#A6ACCD;">        location = /50x.html {</span></span>
+<span class="line"><span style="color:#A6ACCD;">            root   html;</span></span>
+<span class="line"><span style="color:#A6ACCD;">        }</span></span>
+<span class="line"><span style="color:#A6ACCD;">    }</span></span></code></pre></div><h2 id="代理" tabindex="-1">代理 <a class="header-anchor" href="#代理" aria-label="Permalink to &quot;代理&quot;">​</a></h2><blockquote><p>正向代理是代理客户端，为客户端收发请求，使真实客户端对服务器不可见；<br> 而反向代理是代理服务器端，为服务器收发请求，使真实服务器对客户端不可见。</p></blockquote><h2 id="命令" tabindex="-1">命令 <a class="header-anchor" href="#命令" aria-label="Permalink to &quot;命令&quot;">​</a></h2><p>启动</p><blockquote><p>nginx.exe<br> 或者<br> nginx start</p></blockquote><p>重新启动</p><blockquote><p>nginx.exe -s reload</p></blockquote><h2 id="参考文档" tabindex="-1">参考文档 <a class="header-anchor" href="#参考文档" aria-label="Permalink to &quot;参考文档&quot;">​</a></h2><p><a href="https://blog.csdn.net/weixin_46243043/article/details/126468087" target="_blank" rel="noreferrer">https://blog.csdn.net/weixin_46243043/article/details/126468087</a></p>`,18),o=[t];function p(r,i,c,h,d,C){return n(),s("div",null,o)}const _=a(l,[["render",p]]);export{A as __pageData,_ as default};
