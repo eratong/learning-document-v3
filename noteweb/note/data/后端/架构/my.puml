@@ -1,0 +1,160 @@
+
+
+@startuml
+'https://plantuml.com/sequence-diagram
+'免费会员
+'1、用户在饿了平台申请免费会员时，饿了么平台会通过消息通知主应用（非码中台），主应用需将消息转发给APP（新零售）后，
+    'APP处理完用户信息后，将结果返回给主应用，主应用再将结果返回给饿了么。
+    '【接口1：饿了么免费会员注册接口；注：与APP的接口字段待讨论】
+'2、APP要检查会员身份，是否能注册（1、不能注册，返回结果；2、能注册，是否新会员，并返回对应的会员卡号）
+'3、免费会员的接口是同步的；
+'4、免费会员的文档：https://open-retail.ele.me/#/guide?topic=xss70v
+' todo 限流 并发量 请求失败 补偿机制 幂等
+' todo 免费会员文档有对应状态码等等
+actor 用户
+participant 饿了么 as 饿了么 #99FF99
+participant 中间件 as 中间件 #F5DEB3
+participant gatewaytakeout as gatewaytakeout #F5DEB3
+participant APP as APP #87CEFA
+
+autonumber
+
+用户 -> 饿了么: 用户申请免费会员
+activate 饿了么
+'merchant.member.register
+饿了么 -> 中间件: 同步消息通知\n(merchant.member.register )
+activate 中间件
+中间件 -> gatewaytakeout : 转发
+activate gatewaytakeout
+gatewaytakeout -> APP : 转发
+activate APP
+
+
+'处理完消息
+alt 能注册
+    alt 是新会员
+        APP --> gatewaytakeout : 返回对应会员卡号
+    else 不是新会员
+' todo (状态码不一样？？图啥这里)
+        APP --> gatewaytakeout : 返回对应会员卡号
+    end
+else 不能注册
+    APP --> gatewaytakeout : 返回结果
+else 异常
+gatewaytakeout --> APP : 捕获异常重试？？
+end
+deactivate APP
+
+gatewaytakeout --> 中间件 : 返回
+deactivate gatewaytakeout
+中间件 --> 饿了么 : 返回
+deactivate 中间件
+@enduml
+
+@startuml
+'付费会员
+
+actor 用户
+participant 饿了么 as 饿了么 #99FF99
+participant 中间件 as 中间件 #F5DEB3
+participant gatewaymq as gatewaymq #F5DEB3
+participant gatewaytakeout as gatewaytakeout #F5DEB3
+participant APP as APP #87CEFA
+
+autonumber
+
+用户 -> 饿了么 : 进入全家门店
+activate 饿了么
+饿了么 -> 中间件 : 调会员绑定接口、通知会员信息\n(merchant.member.binding)
+activate 中间件
+
+中间件 -> gatewaytakeout : 转发
+activate gatewaytakeout
+gatewaytakeout -> APP : 转发
+activate APP
+
+APP --> gatewaytakeout : 返回
+deactivate APP
+gatewaytakeout --> 中间件 : 返回
+deactivate gatewaytakeout
+中间件 --> 饿了么 : 返回
+deactivate 中间件
+deactivate 饿了么
+
+用户 -> 饿了么 : 付费注册会员
+activate 饿了么
+alt 购买成功
+    饿了么 -> 中间件 : 付费会员消息通知(merchant.member.order)
+    activate 中间件
+    deactivate 饿了么
+end
+中间件 -> gatewaymq : 放入mq
+activate gatewaymq
+deactivate 中间件
+activate APP
+gatewaymq -> APP : 转发
+alt 捕获异常
+    gatewaymq --> APP : 重试
+end
+
+deactivate APP
+deactivate gatewaymq
+
+APP --> gatewaytakeout : 异步回调
+
+activate gatewaytakeout
+
+gatewaytakeout --> 中间件 : 回调
+deactivate gatewaytakeout
+activate 中间件
+
+中间件 --> 饿了么 : 回调(member.order.callback)
+deactivate 中间件
+activate 饿了么
+
+alt 成功
+    饿了么 --> 用户 : 更新会员身份
+else 免费会员开通失败
+    饿了么 --> 用户 : 提示开卡失败
+else 付费会员开通失败
+    饿了么 --> 用户 : 提示开卡失败，并退费给用户
+end
+deactivate 饿了么
+
+
+饿了么 -> 中间件 : 开卡失败,异步超时未收到反馈消息通知\n(merchant.member.refund.order)
+activate 饿了么
+
+activate 中间件
+中间件 -> gatewaymq : 放入mq
+deactivate 中间件
+activate gatewaymq
+
+gatewaymq -> APP : 转发
+alt 捕获异常
+    gatewaymq -> APP : 重试
+end
+deactivate gatewaymq
+
+APP --> gatewaymq : 处理会员身份，结果返回主应用 异步？
+deactivate APP
+
+activate gatewaymq
+gatewaymq --> 中间件 : 返回
+deactivate gatewaymq
+activate 中间件
+中间件 --> 饿了么 : 返回(member.order.refund.callback)
+deactivate 中间件
+deactivate 饿了么
+
+APP -> gatewaytakeout : 会员信息变更通知
+activate gatewaytakeout
+gatewaytakeout -> 中间件 : 转发
+deactivate gatewaytakeout
+activate 中间件
+
+中间件 -> 饿了么 : 转发(member.userInfo.update)
+deactivate 中间件
+
+@enduml
+

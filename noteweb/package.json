@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "docs:dev": "npm -C note run docs:dev",
+    "docs:build": "npm -C note run docs:build",
+    "docs:serve": "vitepress serve note"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.1",
+    "@vitest/ui": "^0.34.2",
+    "unocss": "^0.55.2",
+    "unplugin-vue-components": "^0.25.1",
+    "vite": "^4.4.9",
+    "vitepress": "1.0.0-rc.4",
+    "vitest": "^0.34.2"
+  },
+  "dependencies": {
+    "typescript": "^5.1.6",
+    "vue": "^3.3.4"
+  }
+}
